@@ -31,6 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Check if running on GitHub Pages
+    if (window.location.hostname.includes("github.io")) {
+        const ghBanner = document.getElementById("github-pages-banner");
+        if (ghBanner) ghBanner.classList.remove("hidden");
+    }
+
     // Initialize
     fetchSystemInfo();
     if (!studentId || !studentName) {
@@ -136,6 +142,15 @@ document.addEventListener("DOMContentLoaded", () => {
         chatMessages.appendChild(assistantElem);
         scrollToBottom();
 
+        // If on GitHub Pages, show preview response
+        if (window.location.hostname.includes("github.io")) {
+            const contentDiv = assistantElem.querySelector(".message-content");
+            const previewText = `> 💡 **깃허브 웹 뷰어 미리보기 안내**\n\n현재 보시는 화면은 깃허브 페이지(GitHub Pages) 웹 뷰어입니다. 깃허브 페이지는 정적 사이트이므로 파이썬 백엔드 서버가 동작하지 않습니다.\n\n실제 학생 30명과의 **실시간 AI 대화 스트리밍 및 대화 내역 영구 저장**은 교실에서 선생님 노트북의 **\`run.bat\`**를 실행하여 접속해 주세요!\n\n---\n\n#### 📐 수식 렌더링(MathJax) 예시:\n이차방정식 $ax^2 + bx + c = 0$ 의 근의 공식은 다음과 같습니다.\n$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$\n\n함수 $f(x) = \\int_{0}^{x} t^2 \\, dt = \\frac{1}{3}x^3$ 도 미려하게 렌더링됩니다.`;
+            finalizeRender(contentDiv, previewText);
+            scrollToBottom();
+            return;
+        }
+
         // Lock send
         setStreamingState(true);
 
@@ -223,6 +238,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function loginStudent(name, isNewLogin = false) {
+        if (window.location.hostname.includes("github.io")) {
+            studentId = "demo_student";
+            studentName = name;
+            sessionId = "demo_session";
+            localStorage.setItem("classroom_student_name", studentName);
+            updateStudentBadge(studentName);
+            nameModal.classList.add("hidden");
+            if (isNewLogin) showToast(`${studentName}님, 환영합니다! (웹 뷰어 미리보기)`);
+            return;
+        }
+
         try {
             const res = await fetch("/api/student/login", {
                 method: "POST",
