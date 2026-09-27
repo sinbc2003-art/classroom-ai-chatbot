@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>수업용 AI 챗봇 플랫폼</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <!-- Marked.js (Markdown parser) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Highlight.js (Code Syntax Highlight) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    
+    <!-- MathJax 3 Configuration -->
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            packages: {'[+]': ['noerrors', 'noundefined']}
+        },
+        svg: {
+            fontCache: 'global'
+        },
+        options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+    };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 shadow-sm z-10">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                🎓
+            </div>
+            <div>
+                <h1 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    AI 학습 튜터
+                    <span id="active-model-badge" class="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        gpt-4o-mini
+                    </span>
+                </h1>
+                <p class="text-xs text-slate-400">교실 로컬 AI 학습 플랫폼</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <!-- Student Profile Badge -->
+            <button id="student-badge-btn" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-medium text-slate-700 transition">
+                <span>👤</span>
+                <span id="student-name-display">이름 설정</span>
+                <span class="text-slate-400 text-[10px]">▼</span>
+            </button>
+
+            <!-- New Chat Button -->
+            <button id="new-chat-btn" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition">
+                <span>➕</span>
+                <span>새 대화</span>
+            </button>
+
+            <!-- Admin Link -->
+            <a href="/admin" target="_blank" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition" title="관리자 페이지">
+                ⚙️
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Chat Container -->
+    <main id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 max-w-4xl w-full mx-auto">
+        <!-- Welcome Banner (Shows when conversation is empty) -->
+        <div id="welcome-banner" class="text-center py-12 px-4 space-y-4">
+            <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-inner">
+                ✨
+            </div>
+            <h2 class="text-xl md:text-2xl font-bold text-slate-800">무엇이든 물어보세요!</h2>
+            <p class="text-sm text-slate-500 max-w-md mx-auto">
+                궁금한 개념, 풀리지 않는 수학/과학 문제, 코딩 질문 등 무엇이든 질문하세요. 단계별 힌트와 수식($...$), 코드를 깔끔하게 보여줍니다.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg mx-auto pt-2 text-left">
+                <button class="sample-prompt-btn p-3 rounded-xl bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-xs text-slate-700 transition shadow-sm">
+                    📐 <strong>수학 공식:</strong> 이차방정식 근의 공식을 유도해 줘
+                </button>
+                <button class="sample-prompt-btn p-3 rounded-xl bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-xs text-slate-700 transition shadow-sm">
+                    🔬 <strong>과학 개념:</strong> 광합성의 명반응과 암반응 차이가 뭐야?
+                </button>
+                <button class="sample-prompt-btn p-3 rounded-xl bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-xs text-slate-700 transition shadow-sm">
+                    💻 <strong>코딩 질문:</strong> 파이썬 소수 판별 알고리즘 예제 보여줘
+                </button>
+                <button class="sample-prompt-btn p-3 rounded-xl bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-xs text-slate-700 transition shadow-sm">
+                    💡 <strong>탐구 힌트:</strong> 답을 바로 주지 말고 힌트만 하나 줘
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Input Container -->
+    <footer class="bg-white border-t border-slate-200 p-3 md:p-4 shrink-0 shadow-lg">
+        <div class="max-w-4xl mx-auto">
+            <form id="chat-form" class="relative flex items-end gap-2 bg-slate-50 border border-slate-300 rounded-2xl p-1.5 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition">
+                <textarea 
+                    id="user-input" 
+                    rows="1" 
+                    placeholder="질문을 입력하세요... (Enter: 전송, Shift + Enter: 줄바꿈)" 
+                    class="w-full bg-transparent resize-none px-3 py-2 text-slate-800 text-sm focus:outline-none max-h-36 overflow-y-auto leading-relaxed"
+                ></textarea>
+                <button 
+                    type="submit" 
+                    id="send-btn" 
+                    class="h-10 w-10 shrink-0 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white rounded-xl flex items-center justify-center transition shadow-sm"
+                >
+                    <svg id="send-icon" class="w-5 h-5 translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                    <div id="loading-spinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                </button>
+            </form>
+            <div class="flex justify-between items-center px-2 pt-1.5 text-[11px] text-slate-400">
+                <span>LaTeX 수식($E=mc^2$) 및 마크다운 지원</span>
+                <span id="char-counter"></span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Student Name Modal (Shown on first visit or name change) -->
+    <div id="name-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl modal-fade-in border border-slate-100">
+            <div class="text-center space-y-2 mb-5">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xl mx-auto font-bold">
+                    👋
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">학생 등록</h3>
+                <p class="text-xs text-slate-500">대화 내역 저장을 위해 이름 또는 학번을 입력해 주세요.</p>
+            </div>
+            <form id="name-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">학번 및 이름</label>
+                    <input 
+                        type="text" 
+                        id="student-name-input" 
+                        placeholder="예: 20101 홍길동" 
+                        required 
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none focus:bg-white transition"
+                    >
+                </div>
+                <button 
+                    type="submit" 
+                    class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition"
+                >
+                    시작하기
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Alert Modal / Notification Toast -->
+    <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-900/90 text-white px-4 py-2.5 rounded-xl text-xs font-medium shadow-lg backdrop-blur transition"></div>
+
+    <!-- Main Client Script -->
+    <script src="/static/js/chat.js"></script>
+</body>
+</html>

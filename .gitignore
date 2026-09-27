@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Classroom Chat Database & Student Logs (Security & Privacy)
+data/classroom_chat.db*
+data/*.db
+data/*.db-wal
+data/*.db-shm
+*.csv
+
+# Environment & Secret variables
+.env
+.env.local
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
